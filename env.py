@@ -21,7 +21,7 @@ class ArmEnv(object):
         r = 0.
         action = np.clip(action, *self.action_bound)
         self.arm_info['r'] += action * self.dt
-        self.arm_info['r'] %= np.pi * 2    # normalize
+        self.arm_info['r'] %= np.pi * 2    # normalize  avoid rotation angle to be larger than 360
 
         # state
         s = self.arm_info['r']
