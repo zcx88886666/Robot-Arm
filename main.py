@@ -1,12 +1,12 @@
 """
-Plug a RL method to the framework, this method can be discrete or continuous.
-This script is based on a continuous action RL. If you want to change to discrete RL like DQN,
-please change the env.py and rl.py correspondingly.
+Make it more robust.
+Stop episode once the finger stop at the final position for 50 steps.
+Feature & reward engineering.
 """
-from env import ArmEnv
-from rl import DDPG
+from final.env import ArmEnv
+from final.rl import DDPG
 
-MAX_EPISODES = 500
+MAX_EPISODES = 900
 MAX_EP_STEPS = 200
 ON_TRAIN = True
 
@@ -19,14 +19,14 @@ a_bound = env.action_bound
 # set RL method (continuous)
 rl = DDPG(a_dim, s_dim, a_bound)
 
-
+steps = []
 def train():
     # start training
     for i in range(MAX_EPISODES):
         s = env.reset()
         ep_r = 0.
         for j in range(MAX_EP_STEPS):
-            env.render()
+            # env.render()
 
             a = rl.choose_action(s)
 
@@ -41,7 +41,7 @@ def train():
 
             s = s_
             if done or j == MAX_EP_STEPS-1:
-                print('Ep: %i | %s | ep_r: %.1f | steps: %i' % (i, '---' if not done else 'done', ep_r, j))
+                print('Ep: %i | %s | ep_r: %.1f | step: %i' % (i, '---' if not done else 'done', ep_r, j))
                 break
     rl.save()
 
@@ -50,14 +50,11 @@ def eval():
     rl.restore()
     env.render()
     env.viewer.set_vsync(True)
+    s = env.reset()
     while True:
-        s = env.reset()
-        for _ in range(200):
-            env.render()
-            a = rl.choose_action(s)
-            s, r, done = env.step(a)
-            if done:
-                break
+        env.render()
+        a = rl.choose_action(s)
+        s, r, done = env.step(a)
 
 
 if ON_TRAIN:

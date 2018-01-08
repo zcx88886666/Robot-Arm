@@ -48,6 +48,8 @@ class ArmEnv(object):
         return s, r, done
 
     def reset(self):
+        self.goal['x'] = np.random.rand()*400.
+        self.goal['y'] = np.random.rand()*400.
         self.arm_info['r'] = 2 * np.pi * np.random.rand(2)
         self.on_goal = 0
         (a1l, a2l) = self.arm_info['l']  # radius, arm length
@@ -79,6 +81,7 @@ class Viewer(pyglet.window.Window):
         super(Viewer, self).__init__(width=400, height=400, resizable=False, caption='Arm', vsync=False)
         pyglet.gl.glClearColor(1, 1, 1, 1)
         self.arm_info = arm_info
+        self.goal_info = goal
         self.center_coord = np.array([200, 200])
 
         self.batch = pyglet.graphics.Batch()    # display whole batch at once
@@ -115,6 +118,14 @@ class Viewer(pyglet.window.Window):
         self.batch.draw()
 
     def _update_arm(self):
+        # update goal
+        self.goal.vertices = (
+            self.goal_info['x'] - self.goal_info['l']/2, self.goal_info['y'] - self.goal_info['l']/2,
+            self.goal_info['x'] + self.goal_info['l']/2, self.goal_info['y'] - self.goal_info['l']/2,
+            self.goal_info['x'] + self.goal_info['l']/2, self.goal_info['y'] + self.goal_info['l']/2,
+            self.goal_info['x'] - self.goal_info['l']/2, self.goal_info['y'] + self.goal_info['l']/2)
+
+        # update arm
         (a1l, a2l) = self.arm_info['l']     # radius, arm length
         (a1r, a2r) = self.arm_info['r']     # radian, angle
         a1xy = self.center_coord            # a1 start (x0, y0)
@@ -134,6 +145,11 @@ class Viewer(pyglet.window.Window):
 
         self.arm1.vertices = np.concatenate((xy01, xy02, xy11, xy12))
         self.arm2.vertices = np.concatenate((xy11_, xy12_, xy21, xy22))
+
+    # convert the mouse coordinate to goal's coordinate
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.goal_info['x'] = x
+        self.goal_info['y'] = y
 
 
 if __name__ == '__main__':
